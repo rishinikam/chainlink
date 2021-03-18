@@ -357,7 +357,7 @@ func awaitSubmission(t *testing.T, submissionReceived chan *faw.FluxAggregatorSu
 	select { // block until FluxAggregator contract acknowledges chainlink message
 	case log := <-submissionReceived:
 		return log.Raw.BlockNumber, log.Submission.Int64()
-	case <-time.After(20 * pollTimerPeriod):
+	case <-time.After(10 * pollTimerPeriod):
 		t.Fatalf("chainlink failed to submit answer to FluxAggregator contract")
 		return 0, 0 // unreachable
 	}
@@ -672,7 +672,7 @@ ds1 -> ds1_parse
 """
 	`
 
-	s = fmt.Sprintf(s, fa.aggregatorContractAddress, "1000ms", mockServer.URL)
+	s = fmt.Sprintf(s, fa.aggregatorContractAddress, "200ms", mockServer.URL)
 
 	// raise flags
 	fa.flagsContract.RaiseFlag(fa.sergey, utils.ZeroAddress) // global kill switch
@@ -698,11 +698,10 @@ ds1 -> ds1_parse
 	reportPrice = int64(2) // change in price should trigger run
 	awaitSubmission(t, submissionReceived)
 
-	// lower contract's flag - should have no effect (but currently does)
-	// TODO - https://www.pivotaltracker.com/story/show/175419789
+	// lower contract's flag - should have no effect
 	fa.flagsContract.LowerFlags(fa.sergey, []common.Address{fa.aggregatorContractAddress})
 	fa.backend.Commit()
-	awaitSubmission(t, submissionReceived)
+	assertNoSubmission(t, submissionReceived, 5*pollTimerPeriod, "should not trigger a new run because FM is already hibernating")
 
 	// change in price should trigger run
 	reportPrice = int64(4)
@@ -723,7 +722,7 @@ ds1 -> ds1_parse
 
 	// change in price should not trigger run
 	reportPrice = int64(8)
-	assertNoSubmission(t, submissionReceived, 5*time.Second, "should not trigger a new run, while flag is raised")
+	assertNoSubmission(t, submissionReceived, 5*pollTimerPeriod, "should not trigger a new run, while flag is raised")
 }
 
 func TestFluxMonitor_InvalidSubmission(t *testing.T) {
