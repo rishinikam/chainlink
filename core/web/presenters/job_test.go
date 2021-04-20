@@ -90,7 +90,8 @@ func TestJob(t *testing.T) {
 						"offChainReportingOracleSpec": null,
 						"fluxMonitorSpec": null,
 						"keeperSpec": null,
-                        "cronSpec": null,
+						"cronSpec": null,
+						"webSpec": null,
 						"errors": []
 					}
 				}
@@ -151,7 +152,8 @@ func TestJob(t *testing.T) {
 						"offChainReportingOracleSpec": null,
 						"directRequestSpec": null,
 						"keeperSpec": null,
-                        "cronSpec": null,
+						"cronSpec": null,
+						"webSpec": null,
 						"errors": []
 					}
 				}
@@ -217,7 +219,8 @@ func TestJob(t *testing.T) {
 						"fluxMonitorSpec": null,
 						"directRequestSpec": null,
 						"keeperSpec": null,
-                        "cronSpec": null,
+						"cronSpec": null,
+						"webSpec": null,
 						"errors": []
 					}
 				}
@@ -264,8 +267,9 @@ func TestJob(t *testing.T) {
 						},
 						"fluxMonitorSpec": null,
 						"directRequestSpec": null,
+						"cronSpec": null,
+						"webSpec": null,
 						"offChainReportingOracleSpec": null,
-                        "cronSpec": null,
 						"errors": []
 					}
 				}
@@ -290,32 +294,78 @@ func TestJob(t *testing.T) {
 				MaxTaskDuration: models.Interval(1 * time.Minute),
 			},
 			want: fmt.Sprintf(`
-            {
-                "data":{
-                    "type":"jobs",
-                    "id":"1",
-                    "attributes":{
-                        "name": "test",
-                        "schemaVersion": 1,
-                        "type": "cron",
-                        "maxTaskDuration": "1m0s",
-                        "pipelineSpec": {
-                            "id": 1,
-                            "dotDagSource": ""
-                        },
-                        "cronSpec": {
-                            "schedule": "%s",
-                            "createdAt":"2000-01-01T00:00:00Z",
-                            "updatedAt":"2000-01-01T00:00:00Z"
-                        },
-                        "fluxMonitorSpec": null,
-                        "directRequestSpec": null,
-                        "keeperSpec": null,
-                        "offChainReportingOracleSpec": null,
-                        "errors": []
-                    }
-                }
-            }`, cronSchedule),
+			{
+				"data":{
+					"type":"jobs",
+					"id":"1",
+					"attributes":{
+						"name": "test",
+						"schemaVersion": 1,
+						"type": "cron",
+						"maxTaskDuration": "1m0s",
+						"pipelineSpec": {
+							"id": 1,
+							"dotDagSource": ""
+						},
+						"cronSpec": {
+							"schedule": "%s",
+							"createdAt":"2000-01-01T00:00:00Z",
+							"updatedAt":"2000-01-01T00:00:00Z"
+						},
+						"fluxMonitorSpec": null,
+						"directRequestSpec": null,
+						"keeperSpec": null,
+						"webSpec": null,
+						"offChainReportingOracleSpec": null,
+						"errors": []
+					}
+				}
+			}`, cronSchedule),
+		},
+		{
+			name: "web spec",
+			job: job.Job{
+				ID: 1,
+				WebSpec: &job.WebSpec{
+					CreatedAt: timestamp,
+					UpdatedAt: timestamp,
+				},
+				PipelineSpec: &pipeline.Spec{
+					ID:           1,
+					DotDagSource: "",
+				},
+				Type:            job.Type("web"),
+				SchemaVersion:   1,
+				Name:            null.StringFrom("test"),
+				MaxTaskDuration: models.Interval(1 * time.Minute),
+			},
+			want: `
+			{
+				"data":{
+					"type":"jobs",
+					"id":"1",
+					"attributes":{
+						"name": "test",
+						"schemaVersion": 1,
+						"type": "web",
+						"maxTaskDuration": "1m0s",
+						"pipelineSpec": {
+							"id": 1,
+							"dotDagSource": ""
+						},
+						"webSpec": {
+							"createdAt":"2000-01-01T00:00:00Z",
+							"updatedAt":"2000-01-01T00:00:00Z"
+						},
+						"fluxMonitorSpec": null,
+						"directRequestSpec": null,
+						"keeperSpec": null,
+						"cronSpec": null,
+						"offChainReportingOracleSpec": null,
+						"errors": []
+					}
+				}
+			}`,
 		},
 		{
 			name: "with errors",
@@ -368,7 +418,8 @@ func TestJob(t *testing.T) {
 						},
 						"fluxMonitorSpec": null,
 						"directRequestSpec": null,
-                        "cronSpec": null,
+						"cronSpec": null,
+						"webSpec": null,
 						"offChainReportingOracleSpec": null,
 						"errors": [{
 							"id": 200,

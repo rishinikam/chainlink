@@ -26,6 +26,10 @@ const (
 	OffChainReportingJobSpec JobSpecType = "offchainreporting"
 	// Keeper defines a Keeper Job
 	KeeperJobSpec JobSpecType = "keeper"
+	// Cron defines a Cron Job
+	CronJobSpec JobSpecType = "cron"
+	// Web defines a Web Job
+	WebJobSpec JobSpecType = "web"
 )
 
 // DirectRequestSpec defines the spec details of a DirectRequest Job
@@ -153,6 +157,20 @@ func NewKeeperSpec(spec *job.KeeperSpec) *KeeperSpec {
 	}
 }
 
+// WebSpec defines the spec details of a Web Job
+type WebSpec struct {
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// NewWebSpec generates a new WebSpec from a job.WebSpec
+func NewWebSpec(spec *job.WebSpec) *WebSpec {
+	return &WebSpec{
+		CreatedAt: spec.CreatedAt,
+		UpdatedAt: spec.UpdatedAt,
+	}
+}
+
 // CronSpec defines the spec details of a Cron Job
 type CronSpec struct {
 	CronSchedule string    `json:"schedule" tom:"schedule"`
@@ -197,9 +215,10 @@ type JobResource struct {
 	MaxTaskDuration       models.Interval        `json:"maxTaskDuration"`
 	DirectRequestSpec     *DirectRequestSpec     `json:"directRequestSpec"`
 	FluxMonitorSpec       *FluxMonitorSpec       `json:"fluxMonitorSpec"`
+	CronSpec              *CronSpec              `json:"cronSpec"`
 	OffChainReportingSpec *OffChainReportingSpec `json:"offChainReportingOracleSpec"`
 	KeeperSpec            *KeeperSpec            `json:"keeperSpec"`
-	CronSpec              *CronSpec              `json:"cronSpec"`
+	WebSpec               *WebSpec               `json:"webSpec"`
 	PipelineSpec          PipelineSpec           `json:"pipelineSpec"`
 	Errors                []JobError             `json:"errors"`
 }
@@ -220,12 +239,14 @@ func NewJobResource(j job.Job) *JobResource {
 		resource.DirectRequestSpec = NewDirectRequestSpec(j.DirectRequestSpec)
 	case job.FluxMonitor:
 		resource.FluxMonitorSpec = NewFluxMonitorSpec(j.FluxMonitorSpec)
-	case job.OffchainReporting:
-		resource.OffChainReportingSpec = NewOffChainReportingSpec(j.OffchainreportingOracleSpec)
 	case job.Cron:
 		resource.CronSpec = NewCronSpec(j.CronSpec)
+	case job.OffchainReporting:
+		resource.OffChainReportingSpec = NewOffChainReportingSpec(j.OffchainreportingOracleSpec)
 	case job.Keeper:
 		resource.KeeperSpec = NewKeeperSpec(j.KeeperSpec)
+	case job.Web:
+		resource.WebSpec = NewWebSpec(j.WebSpec)
 	}
 
 	jes := []JobError{}

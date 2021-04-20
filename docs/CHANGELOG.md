@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web job types can now be created from the operator UI as a new job. 
+
+- See example web job spec below: 
+
+```
+type            = "web"
+schemaVersion   = 1
+observationSource   = """
+ds          [type=http method=GET url="http://example.com"];
+ds_parse    [type=jsonparse path="data"];
+ds -> ds_parse;
+"""
+```
+
 - New CLI command to convert v1 flux monitor jobs (JSON) to 
 v2 flux monitor jobs (TOML). Running it will archive the v1 
 job and create a new v2 job. Example:
