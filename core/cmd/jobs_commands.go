@@ -107,12 +107,12 @@ func (p JobPresenter) FriendlyCreatedAt() string {
 			return p.KeeperSpec.CreatedAt.Format(time.RFC3339)
 		}
 	case presenters.CronJobSpec:
-		if j.CronSpec != nil {
-			return j.CronSpec.CreatedAt.Format(time.RFC3339)
+		if p.CronSpec != nil {
+			return p.CronSpec.CreatedAt.Format(time.RFC3339)
 		}
 	case presenters.WebJobSpec:
-		if j.WebSpec != nil {
-			return j.WebSpec.CreatedAt.Format(time.RFC3339)
+		if p.WebSpec != nil {
+			return p.WebSpec.CreatedAt.Format(time.RFC3339)
 		}
 	default:
 		return "unknown"

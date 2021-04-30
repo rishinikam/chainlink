@@ -256,12 +256,12 @@ func TestJobsController_Create_HappyPath_FluxMonitorSpec(t *testing.T) {
 }
 
 func TestJobsController_Create_WebRequestSpec(t *testing.T) {
-	rpcClient, gethClient, _, assertMocksCalled := cltest.NewEthMocksWithStartupAssertions(t)
-	defer assertMocksCalled()
+	ethClient, _, assertMocksCalled := cltest.NewEthMocksWithStartupAssertions(t)
+	t.Cleanup(assertMocksCalled)
 	app, cleanup := cltest.NewApplicationWithKey(t,
-		eth.NewClientWith(rpcClient, gethClient),
+		ethClient,
 	)
-	defer cleanup()
+	t.Cleanup(cleanup)
 	require.NoError(t, app.Start())
 
 	client := app.NewHTTPClient()
