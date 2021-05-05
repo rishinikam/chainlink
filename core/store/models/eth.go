@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/jinzhu/gorm/dialects/postgres"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/smartcontractkit/chainlink/core/assets"
 	"github.com/smartcontractkit/chainlink/core/logger"
@@ -17,7 +19,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -43,6 +45,10 @@ type EthTaskRunTx struct {
 	EthTx     EthTx
 }
 
+type EthTxMeta struct {
+	TaskRunID uuid.UUID
+}
+
 type EthTx struct {
 	ID             int64
 	Nonce          *int64
@@ -58,6 +64,8 @@ type EthTx struct {
 	CreatedAt     time.Time
 	State         EthTxState
 	EthTxAttempts []EthTxAttempt `gorm:"->"`
+	// Marshalled EthTxMeta
+	Meta postgres.Jsonb
 }
 
 func (e EthTx) GetError() error {
@@ -96,9 +104,9 @@ type EthReceipt struct {
 }
 
 // GetSignedTx decodes the SignedRawTx into a types.Transaction struct
-func (a EthTxAttempt) GetSignedTx() (*types.Transaction, error) {
+func (a EthTxAttempt) GetSignedTx() (*gethtypes.Transaction, error) {
 	s := rlp.NewStream(bytes.NewReader(a.SignedRawTx), 0)
-	signedTx := new(types.Transaction)
+	signedTx := new(gethtypes.Transaction)
 	if err := signedTx.DecodeRLP(s); err != nil {
 		logger.Error("could not decode RLP")
 		return nil, err
@@ -288,7 +296,7 @@ var WeiPerEth = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 var emptyHash = common.Hash{}
 
 // Unconfirmed returns true if the transaction is not confirmed.
-func ReceiptIsUnconfirmed(txr *types.Receipt) bool {
+func ReceiptIsUnconfirmed(txr *gethtypes.Receipt) bool {
 	return txr == nil || txr.TxHash == emptyHash || txr.BlockNumber == nil
 }
 
@@ -299,7 +307,7 @@ var ChainlinkFulfilledTopic = utils.MustHash("ChainlinkFulfilled(bytes32)")
 
 // ReceiptIndicatesRunLogFulfillment returns true if this tx receipt is the result of a
 // fulfilled run log.
-func ReceiptIndicatesRunLogFulfillment(txr types.Receipt) bool {
+func ReceiptIndicatesRunLogFulfillment(txr gethtypes.Receipt) bool {
 	for _, log := range txr.Logs {
 		if log.Topics[0] == ChainlinkFulfilledTopic {
 			return true
@@ -411,7 +419,7 @@ type blockInternal struct {
 	Number       string
 	Hash         common.Hash
 	ParentHash   common.Hash
-	Transactions []types.Transaction
+	Transactions []gethtypes.Transaction
 }
 
 // Int64ToHex converts an int64 into go-ethereum's hex representation
@@ -445,7 +453,7 @@ type Block struct {
 	Number       int64
 	Hash         common.Hash
 	ParentHash   common.Hash
-	Transactions []types.Transaction
+	Transactions []gethtypes.Transaction
 }
 
 // MarshalJSON implements json marshalling for Block

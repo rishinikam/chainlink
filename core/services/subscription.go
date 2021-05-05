@@ -202,7 +202,7 @@ func (sub *InitiatorSubscription) listenForLogs() {
 					}
 					sub.ethSubscription = newSub
 					sub.logs = newLogs
-					l.Infow(fmt.Sprintf("InitiatorSubscription: successfully reconnected to eth node"))
+					l.Infow("InitiatorSubscription: successfully reconnected to eth node")
 					break
 				}
 			}
@@ -298,12 +298,12 @@ func timedUnsubscribe(s ethereum.Subscription) {
 // GetJobSpecID method
 func ProcessLogRequest(runManager RunManager, le models.LogRequest) {
 	if !le.Validate() {
-		logger.Debugw("InitiatorSubscription: discarding invalid event log", "log", le.GetLog())
+		logger.Debugw("InitiatorSubscription: discarding invalid event log", le.ForLogger()...)
 		return
 	}
 
 	if le.GetLog().Removed {
-		logger.Debugw("InitiatorSubscription: skipping run for removed log", "log", le.GetLog(), "jobID", le.GetJobSpecID().String())
+		logger.Debugw("InitiatorSubscription: skipping run for removed log", le.ForLogger()...)
 		return
 	}
 
@@ -313,23 +313,23 @@ func ProcessLogRequest(runManager RunManager, le models.LogRequest) {
 
 	if err := le.ValidateRequester(); err != nil {
 		if _, e := runManager.CreateErrored(jobSpecID, initiator, err); e != nil {
-			logger.Errorw(e.Error())
+			logger.Errorw("InitiatorSubscription: invalid requester, error creating errored job", le.ForLogger("err", e.Error())...)
 		}
-		logger.Errorw(err.Error(), le.ForLogger()...)
+		logger.Errorw("InitiatorSubscription: invalid requester, created errored job", le.ForLogger("err", err)...)
 		return
 	}
 
 	rr, err := le.RunRequest()
 	if err != nil {
 		if _, e := runManager.CreateErrored(jobSpecID, initiator, err); e != nil {
-			logger.Errorw(e.Error())
+			logger.Errorw("InitiatorSubscription: invalid run request, error creating errored job", le.ForLogger("err", e.Error())...)
 		}
-		logger.Errorw(err.Error(), le.ForLogger()...)
+		logger.Errorw("InitiatorSubscription: invalid run request, created errored job", le.ForLogger("err", err)...)
 		return
 	}
 
 	_, err = runManager.Create(jobSpecID, &initiator, le.BlockNumber(), &rr)
 	if err != nil {
-		logger.Errorw(err.Error(), le.ForLogger()...)
+		logger.Errorw("InitiatorSubscription: error creating run from log", le.ForLogger("err", err)...)
 	}
 }

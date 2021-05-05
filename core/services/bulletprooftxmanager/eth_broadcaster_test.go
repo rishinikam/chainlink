@@ -2,11 +2,15 @@ package bulletprooftxmanager_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"testing"
 	"time"
+
+	gormpostgrestypes "github.com/jinzhu/gorm/dialects/postgres"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/smartcontractkit/chainlink/core/store/dialects"
 
@@ -117,6 +121,8 @@ func TestEthBroadcaster_ProcessUnstartedEthTxs_Success(t *testing.T) {
 		})).Return(nil).Once()
 
 		// Earlier
+		b, err := json.Marshal(models.EthTxMeta{TaskRunID: uuid.NewV4()})
+		require.NoError(t, err)
 		earlierEthTx := models.EthTx{
 			FromAddress:    fromAddress,
 			ToAddress:      toAddress,
@@ -125,6 +131,7 @@ func TestEthBroadcaster_ProcessUnstartedEthTxs_Success(t *testing.T) {
 			GasLimit:       gasLimit,
 			CreatedAt:      time.Unix(0, 1),
 			State:          models.EthTxUnstarted,
+			Meta:           gormpostgrestypes.Jsonb{RawMessage: b},
 		}
 		ethClient.On("SendTransaction", mock.Anything, mock.MatchedBy(func(tx *gethTypes.Transaction) bool {
 			if tx.Nonce() != uint64(0) {
