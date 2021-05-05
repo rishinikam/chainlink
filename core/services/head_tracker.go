@@ -88,6 +88,7 @@ func (r *headRingBuffer) run() {
 		case h, ok := <-r.in:
 			if !ok {
 				// If the channel is closed, do not handle any more heads.
+				close(r.out)
 				return
 			}
 			// We've received a head, reset the no heads alarm
@@ -128,7 +129,6 @@ func (r *headRingBuffer) run() {
 			logger.Warn(fmt.Sprintf("HeadTracker: have not received a head for %v", noHeadsAlarm))
 		}
 	}
-	close(r.out)
 }
 
 // HeadTracker holds and stores the latest block number experienced by this particular node

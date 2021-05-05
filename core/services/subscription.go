@@ -171,11 +171,11 @@ func (sub *InitiatorSubscription) listenForLogs() {
 			if _, present := backfilledSet[log.BlockHash.String()]; !present {
 				logger.Infow("InitiatorSubscription: log received",
 					"blockNumber", log.BlockNumber,
-						"txHash", log.TxHash.Hex(),
-						"logIndex", log.Index,
-						"address", log.Address,
-						"log", log,
-					)
+					"txHash", log.TxHash.Hex(),
+					"logIndex", log.Index,
+					"address", log.Address,
+					"log", log,
+				)
 				sub.callback(sub.runManager, models.InitiatorLogEvent{
 					Initiator: sub.Initiator,
 					Log:       log,
